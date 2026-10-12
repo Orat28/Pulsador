@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Pulsador - En una Nota</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    body { background-color: #121212; color: #fff; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+    
+    .setup-box { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
+    input { width: 100%; height: 48px; background: #282828; border: 1px solid #444; border-radius: 8px; color: #fff; padding: 0 12px; font-size: 1rem; outline: none; }
+    .btn-join { height: 48px; background: #1db954; color: #000; font-weight: bold; border: none; border-radius: 8px; font-size: 1rem; }
+
+    .game-box { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: space-between; padding: 20px 0; }
+    .status-text { font-size: 1.2rem; color: #aaa; }
+    
+    /* Botón Pulsador Gigante */
+    .buzzer-btn {
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ff4d4d 0%, #cc0000 100%);
+      border: 8px solid #800000;
+      box-shadow: 0 10px 25px rgba(255, 0, 0, 0.4);
+      color: #fff;
+      font-size: 2rem;
+      font-weight: 900;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.05s, background 0.2s;
+    }
+    .buzzer-btn:active { transform: scale(0.92); }
+    .buzzer-btn:disabled { background: #444; border-color: #222; box-shadow: none; color: #777; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <!-- Registro del Jugador -->
+  <div class="setup-box" id="setupBox">
+    <h2>Songless Buzzer</h2>
+    <input type="text" id="playerName" placeholder="Tu Nombre..." />
+    <input type="text" id="roomCode" placeholder="Código de Sala (ej: 1234)" />
+    <button class="btn-join" id="joinBtn">Entrar a la Sala</button>
+  </div>
+
+  <!-- Vista del Pulsador -->
+  <div class="game-box" id="gameBox">
+    <div class="status-text" id="statusText">Esperando que empiece la canción...</div>
+    <button class="buzzer-btn" id="buzzerBtn" disabled>¡YO!</button>
+    <div>Jugador: <strong id="displayName"></strong></div>
+  </div>
+
+  <!-- Firebase App & Database SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    // ⚠️ REEMPLAZA CON TUS CREDENCIALES DE FIREBASE CONSOLE
+    const firebaseConfig = {
+  apiKey: "AIzaSyD3vC1zAURPHt2rCLmPF06xElC4KnpWpDU",
+  authDomain: "en-una.firebaseapp.com",
+  projectId: "en-una",
+  storageBucket: "en-una.firebasestorage.app",
+  messagingSenderId: "862732139888",
+  appId: "1:862732139888:web:7f246b1bdd5f7f97b863b5",
+};
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let roomRef = null;
+    let playerName = "";
+
+    document.getElementById('joinBtn').addEventListener('click', () => {
+      playerName = document.getElementById('playerName').value.trim();
+      const code = document.getElementById('roomCode').value.trim();
+
+      if (!playerName || !code) return alert('Completa tu nombre y código de sala.');
+
+      roomRef = db.ref(`rooms/${code}`);
+
+      document.getElementById('setupBox').style.display = 'none';
+      document.getElementById('gameBox').style.display = 'flex';
+      document.getElementById('displayName').textContent = playerName;
+
+      // Escuchar el estado de la sala en tiempo real
+      roomRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const statusText = document.getElementById('statusText');
+        const buzzerBtn = document.getElementById('buzzerBtn');
+
+        if (data.state === 'PLAYING') {
+          statusText.textContent = '¡PRESIONA AHORA!';
+          statusText.style.color = '#1db954';
+          buzzerBtn.disabled = false;
+        } else if (data.state === 'BUZZED') {
+          if (data.first_buzzer && data.first_buzzer.player_name === playerName) {
+            statusText.textContent = '¡TOCASTE PRIMERO! Responde ahora.';
+            statusText.style.color = '#1db954';
+          } else {
+            statusText.textContent = `Tocó primero: ${data.first_buzzer ? data.first_buzzer.player_name : 'Alguien'}`;
+            statusText.style.color = '#e91e63';
+          }
+          buzzerBtn.disabled = true;
+        } else {
+          statusText.textContent = 'Atento a la pantalla...';
+          statusText.style.color = '#aaa';
+          buzzerBtn.disabled = true;
+        }
+      });
+    });
+
+    // Acción del Pulsador con transacción segura (evita empates)
+    document.getElementById('buzzerBtn').addEventListener('click', () => {
+      if (!roomRef) return;
+
+      roomRef.transaction((currentData) => {
+        if (currentData && currentData.state === 'PLAYING') {
+          currentData.state = 'BUZZED';
+          currentData.first_buzzer = {
+            player_name: playerName,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+          };
+        }
+        return currentData;
+      });
+    });
+  </script>
+</body>
+</html>
