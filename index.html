@@ -81,39 +81,45 @@
       document.getElementById('displayName').textContent = playerName;
 
       roomRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
+  const data = snapshot.val();
+  if (!data) return;
 
-        if (data.state === 'PLAYING') {
-          statusText.textContent = '¡PRESIONA AHORA!';
-          statusText.style.color = '#1db954';
-          buzzerBtn.style.display = 'block';
-          buzzerBtn.disabled = false;
-          answerBox.style.display = 'none';
-        } else if (data.state === 'BUZZED') {
-          if (data.first_buzzer && data.first_buzzer.player_name === playerName) {
-            statusText.textContent = '¡TOCASTE PRIMERO! Escribe tu respuesta:';
-            statusText.style.color = '#1db954';
-            buzzerBtn.style.display = 'none';
-            answerBox.style.display = 'flex';
-            guessInput.focus();
-          } else {
-            statusText.textContent = `Respondiendo: ${data.first_buzzer ? data.first_buzzer.player_name : 'Otro jugador'}`;
-            statusText.style.color = '#e91e63';
-            buzzerBtn.style.display = 'block';
-            buzzerBtn.disabled = true;
-            answerBox.style.display = 'none';
-          }
-        } else {
-          statusText.textContent = 'Atento a la pantalla...';
-          statusText.style.color = '#aaa';
-          buzzerBtn.style.display = 'block';
-          buzzerBtn.disabled = true;
-          answerBox.style.display = 'none';
-        }
-      });
-    });
-
+  if (data.state === 'PLAYING') {
+    statusText.textContent = '¡PRESIONA AHORA!';
+    statusText.style.color = '#1db954';
+    buzzerBtn.style.display = 'block';
+    buzzerBtn.disabled = false;
+    answerBox.style.display = 'none';
+  } else if (data.state === 'BUZZED') {
+    if (data.first_buzzer && data.first_buzzer.player_name === playerName) {
+      // SI YA ENVIÓ LA RESPUESTA, MOSTRAR ESPERA
+      if (data.submitted_guess) {
+        statusText.textContent = 'Respuesta enviada. Verificando...';
+        statusText.style.color = '#1db954';
+        buzzerBtn.style.display = 'none';
+        answerBox.style.display = 'none';
+      } else {
+        statusText.textContent = '¡TOCASTE PRIMERO! Escribe tu respuesta:';
+        statusText.style.color = '#1db954';
+        buzzerBtn.style.display = 'none';
+        answerBox.style.display = 'flex';
+        guessInput.focus();
+      }
+    } else {
+      statusText.textContent = `Respondiendo: ${data.first_buzzer ? data.first_buzzer.player_name : 'Otro jugador'}`;
+      statusText.style.color = '#e91e63';
+      buzzerBtn.style.display = 'block';
+      buzzerBtn.disabled = true;
+      answerBox.style.display = 'none';
+    }
+  } else {
+    statusText.textContent = 'Atento a la pantalla...';
+    statusText.style.color = '#aaa';
+    buzzerBtn.style.display = 'block';
+    buzzerBtn.disabled = true;
+    answerBox.style.display = 'none';
+  }
+});
     // Enviar respuesta a la TV a través de Firebase
     function submitGuess() {
       const text = guessInput.value.trim();
