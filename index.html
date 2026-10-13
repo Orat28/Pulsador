@@ -43,17 +43,15 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
-    // ⚠️ ASEGÚRATE DE COPIAR TUS CLAVES EXACTAS DE FIREBASE
-   const firebaseConfig = {
-  apiKey: "AIzaSyD3vC1zAURPHt2rCLmPF06xElC4KnpWpDU",
-  authDomain: "en-una.firebaseapp.com",
-  databaseURL: "https://en-una-default-rtdb.firebaseio.com",
-  projectId: "en-una",
-  storageBucket: "en-una.firebasestorage.app",
-  messagingSenderId: "862732139888",
-  appId: "1:862732139888:web:7f246b1bdd5f7f97b863b5",
-  measurementId: "G-41X7749JTT"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyD3vC1zAURPHt2rCLmPF06xElC4KnpWpDU",
+      authDomain: "en-una.firebaseapp.com",
+      databaseURL: "https://en-una-default-rtdb.firebaseio.com",
+      projectId: "en-una",
+      storageBucket: "en-una.firebasestorage.app",
+      messagingSenderId: "862732139888",
+      appId: "1:862732139888:web:7f246b1bdd5f7f97b863b5",
+      measurementId: "G-41X7749JTT"
     };
 
     try {
@@ -79,7 +77,7 @@
 
       if (!playerName || !code) return alert('Completa tu nombre y código.');
 
-      // CAMBIAR PANTALLA DE INMEDIATO
+      // Cambiar de vista inmediatamente
       setupBox.style.display = 'none';
       gameBox.style.display = 'flex';
       document.getElementById('displayName').textContent = playerName;
