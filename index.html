@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Pulsador - En una nota</title>
+  <title>Pulsador - ENUNANOTA</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
     body { background-color: #121212; color: #fff; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
@@ -14,15 +14,13 @@
     .status-text { font-size: 1.2rem; color: #aaa; font-weight: bold; }
     .buzzer-btn { width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle, #ff4d4d 0%, #cc0000 100%); border: 8px solid #800000; box-shadow: 0 10px 25px rgba(255, 0, 0, 0.4); color: #fff; font-size: 2rem; font-weight: 900; cursor: pointer; user-select: none; }
     .buzzer-btn:disabled { background: #444; border-color: #222; box-shadow: none; color: #777; cursor: not-allowed; }
-    
-    /* Contenedor de respuesta */
     .answer-box { display: none; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; margin: auto; }
   </style>
 </head>
 <body>
 
   <div class="setup-box" id="setupBox">
-    <h2>En una nota Buzzer</h2>
+    <h2>UNANOTA Buzzer</h2>
     <input type="text" id="playerName" placeholder="Tu Nombre..." />
     <input type="text" id="roomCode" value="1234" placeholder="Código de Sala" />
     <button class="btn-join" id="joinBtn">Entrar a la Sala</button>
@@ -31,10 +29,8 @@
   <div class="game-box" id="gameBox">
     <div class="status-text" id="statusText">Esperando a la TV...</div>
 
-    <!-- Pulsador Principal -->
     <button class="buzzer-btn" id="buzzerBtn" disabled>¡YO!</button>
 
-    <!-- Campo para escribir cuando tocó primero -->
     <div class="answer-box" id="answerBox">
       <input type="text" id="guessInput" placeholder="Escribe el nombre de la canción..." autocomplete="off" />
       <button class="btn-send" id="sendBtn">Enviar Respuesta</button>
@@ -47,17 +43,25 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
-    // ⚠️ REEMPLAZA CON TUS CREDENCIALES DE FIREBASE CONSOLE
-    const firebaseConfig = {
+    // ⚠️ ASEGÚRATE DE COPIAR TUS CLAVES EXACTAS DE FIREBASE
+   const firebaseConfig = {
   apiKey: "AIzaSyD3vC1zAURPHt2rCLmPF06xElC4KnpWpDU",
   authDomain: "en-una.firebaseapp.com",
+  databaseURL: "https://en-una-default-rtdb.firebaseio.com",
   projectId: "en-una",
   storageBucket: "en-una.firebasestorage.app",
   messagingSenderId: "862732139888",
   appId: "1:862732139888:web:7f246b1bdd5f7f97b863b5",
+  measurementId: "G-41X7749JTT"
+};
     };
 
-    firebase.initializeApp(firebaseConfig);
+    try {
+      firebase.initializeApp(firebaseConfig);
+    } catch(e) {
+      alert("Error en la configuración de Firebase. Revisa las credenciales.");
+    }
+
     const db = firebase.database();
     let roomRef = null, playerName = "";
 
@@ -75,72 +79,77 @@
 
       if (!playerName || !code) return alert('Completa tu nombre y código.');
 
-      roomRef = db.ref(`rooms/${code}`);
+      // CAMBIAR PANTALLA DE INMEDIATO
       setupBox.style.display = 'none';
       gameBox.style.display = 'flex';
       document.getElementById('displayName').textContent = playerName;
 
-      roomRef.on('value', (snapshot) => {
-  const data = snapshot.val();
-  if (!data) return;
+      roomRef = db.ref(`rooms/${code}`);
 
-  if (data.state === 'PLAYING') {
-    statusText.textContent = '¡PRESIONA AHORA!';
-    statusText.style.color = '#1db954';
-    buzzerBtn.style.display = 'block';
-    buzzerBtn.disabled = false;
-    answerBox.style.display = 'none';
-  } else if (data.state === 'BUZZED') {
-    if (data.first_buzzer && data.first_buzzer.player_name === playerName) {
-      // SI YA ENVIÓ LA RESPUESTA, MOSTRAR ESPERA
-      if (data.submitted_guess) {
-        statusText.textContent = 'Respuesta enviada. Verificando...';
-        statusText.style.color = '#1db954';
-        buzzerBtn.style.display = 'none';
-        answerBox.style.display = 'none';
-      } else {
-        statusText.textContent = '¡TOCASTE PRIMERO! Escribe tu respuesta:';
-        statusText.style.color = '#1db954';
-        buzzerBtn.style.display = 'none';
-        answerBox.style.display = 'flex';
-        guessInput.focus();
-      }
-    } else {
-      statusText.textContent = `Respondiendo: ${data.first_buzzer ? data.first_buzzer.player_name : 'Otro jugador'}`;
-      statusText.style.color = '#e91e63';
-      buzzerBtn.style.display = 'block';
-      buzzerBtn.disabled = true;
-      answerBox.style.display = 'none';
-    }
-  } else {
-    statusText.textContent = 'Atento a la pantalla...';
-    statusText.style.color = '#aaa';
-    buzzerBtn.style.display = 'block';
-    buzzerBtn.disabled = true;
-    answerBox.style.display = 'none';
-  }
-});
-    // Enviar respuesta a la TV a través de Firebase
+      roomRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        
+        if (!data) {
+          statusText.textContent = 'Inicia el juego en la TV/PC primero...';
+          statusText.style.color = '#ffca28';
+          buzzerBtn.style.display = 'block';
+          buzzerBtn.disabled = true;
+          answerBox.style.display = 'none';
+          return;
+        }
+
+        if (data.state === 'PLAYING') {
+          statusText.textContent = '¡PRESIONA AHORA!';
+          statusText.style.color = '#1db954';
+          buzzerBtn.style.display = 'block';
+          buzzerBtn.disabled = false;
+          answerBox.style.display = 'none';
+        } else if (data.state === 'BUZZED') {
+          if (data.first_buzzer && data.first_buzzer.player_name === playerName) {
+            if (data.submitted_guess) {
+              statusText.textContent = 'Respuesta enviada. Verificando...';
+              statusText.style.color = '#1db954';
+              buzzerBtn.style.display = 'none';
+              answerBox.style.display = 'none';
+            } else {
+              statusText.textContent = '¡TOCASTE PRIMERO! Escribe tu respuesta:';
+              statusText.style.color = '#1db954';
+              buzzerBtn.style.display = 'none';
+              answerBox.style.display = 'flex';
+              guessInput.focus();
+            }
+          } else {
+            statusText.textContent = `Respondiendo: ${data.first_buzzer ? data.first_buzzer.player_name : 'Otro jugador'}`;
+            statusText.style.color = '#e91e63';
+            buzzerBtn.style.display = 'block';
+            buzzerBtn.disabled = true;
+            answerBox.style.display = 'none';
+          }
+        } else {
+          statusText.textContent = 'Atento a la pantalla...';
+          statusText.style.color = '#aaa';
+          buzzerBtn.style.display = 'block';
+          buzzerBtn.disabled = true;
+          answerBox.style.display = 'none';
+        }
+      });
+    });
+
     function submitGuess() {
       const text = guessInput.value.trim();
       if (!text || !roomRef) return;
 
       roomRef.update({
-        submitted_guess: {
-          player_name: playerName,
-          text: text
-        }
+        submitted_guess: { player_name: playerName, text: text }
       });
 
       guessInput.value = '';
       answerBox.style.display = 'none';
-      statusText.textContent = 'Respuesta enviada. Verificando...';
     }
 
     sendBtn.addEventListener('click', submitGuess);
     guessInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitGuess(); });
 
-    // Acción del Pulsador
     buzzerBtn.addEventListener('click', () => {
       if (!roomRef) return;
       roomRef.transaction((currentData) => {
