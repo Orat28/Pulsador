@@ -16,6 +16,7 @@
 
     .btn-join, .btn-send, .btn-action { height: 44px; background: #1db954; color: #000; font-weight: bold; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; width: 100%; }
     .btn-skip { background: #e91e63; color: #fff; }
+    .btn-next { background: #2196f3; color: #fff; }
     
     .game-box { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: space-between; gap: 12px; padding: 5px 0; }
     .status-text { font-size: 1.2rem; color: #aaa; font-weight: bold; }
@@ -59,11 +60,12 @@
       <button class="btn-send" id="sendBtn">Enviar Respuesta</button>
     </div>
 
-    <!-- PANEL DE CONTROL COMPACTO SOLO PARA EL HOST -->
+    <!-- PANEL DE CONTROL COMPACTO PARA EL HOST -->
     <div class="host-panel" id="hostPanel">
-      <div style="display: flex; gap: 8px;">
-        <button class="btn-action" id="hostPlayBtn" style="background: #1db954;">▶ Reproducir Nota</button>
+      <div style="display: flex; gap: 6px;">
+        <button class="btn-action" id="hostPlayBtn" style="background: #1db954;">▶ Play</button>
         <button class="btn-action btn-skip" id="hostSkipBtn">⏩ Skip</button>
+        <button class="btn-action btn-next" id="hostNextBtn">⏭️ Siguiente</button>
       </div>
 
       <button class="toggle-links-btn" id="toggleLinksBtn">⚙️ Cargar Playlist en TV</button>
@@ -193,9 +195,10 @@
         cmd: 'LOAD_PLAYLIST',
         timestamp: Date.now()
       });
-      linksContainer.style.display = 'none'; // Ocultar automáticamente al enviar
+      linksContainer.style.display = 'none';
     });
 
+    // Controles remotos del Host
     document.getElementById('hostPlayBtn').addEventListener('click', () => {
       if (!roomRef) return;
       roomRef.update({ cmd: 'PLAY', timestamp: Date.now() });
@@ -204,6 +207,11 @@
     document.getElementById('hostSkipBtn').addEventListener('click', () => {
       if (!roomRef) return;
       roomRef.update({ cmd: 'SKIP', timestamp: Date.now() });
+    });
+
+    document.getElementById('hostNextBtn').addEventListener('click', () => {
+      if (!roomRef) return;
+      roomRef.update({ cmd: 'NEXT_SONG', timestamp: Date.now() });
     });
 
     function submitGuess() {
