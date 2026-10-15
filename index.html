@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Pulsador - OneNote</title>
+  <title>Pulsador - No Me Sale el Nombre</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { background-color: #0f0f13; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; text-align: center; }
@@ -27,7 +27,6 @@
     
     .answer-box { display: none; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; margin: auto; }
     
-    /* Panel Host Compacto */
     .host-panel { display: none; flex-direction: column; gap: 8px; width: 100%; max-width: 340px; background: #16161e; padding: 10px; border-radius: 12px; border: 1px solid #282838; }
     .toggle-links-btn { background: #222230; color: #ffca28; border: 1px solid #333348; padding: 6px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: bold; }
     .links-container { display: none; flex-direction: column; gap: 8px; margin-top: 4px; }
@@ -37,7 +36,7 @@
 
   <!-- INGRESO -->
   <div class="setup-box" id="setupBox">
-    <h2>OneNote Buzzer</h2>
+    <h2 style="color: #ff0055;">No Me Sale el Nombre</h2>
     <input type="text" id="playerName" placeholder="Tu Nombre..." />
     <input type="text" id="roomCode" value="1234" placeholder="Código de Sala" />
     
@@ -123,13 +122,15 @@
 
       if (isHost) hostPanel.style.display = 'flex';
 
+      if (roomRef) roomRef.off();
+
       roomRef = db.ref(`rooms/${code}`);
 
       roomRef.on('value', (snapshot) => {
         const data = snapshot.val();
         
         if (!data) {
-          statusText.textContent = 'Inicia el juego en la TV/PC primero...';
+          statusText.textContent = `Sala "${code}" sin iniciar en TV...`;
           statusText.style.color = '#ffca28';
           buzzerBtn.style.display = 'block';
           buzzerBtn.disabled = true;
